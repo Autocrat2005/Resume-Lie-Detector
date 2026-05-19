@@ -73,17 +73,21 @@ export async function callAI(
 
   // Fallback / standard path (Anthropic proxy or direct Anthropic)
   const isFree = provider !== 'claude';
-  const baseUrl = isFree ? FREE_BASE_URL : PRO_BASE_URL;
-  const apiKey = isFree ? FREE_API_KEY : PRO_API_KEY;
-  const model = isFree ? FREE_MODEL : PRO_MODEL;
-  const maxTokens = isFree ? FREE_MAX_TOKENS : 4096;
-  const temperature = isFree ? FREE_TEMPERATURE : 0.7;
+  
+  // For Pro plan ('claude'), use direct Anthropic if key is supplied. Otherwise, fall back to Veritas (Claude Sonnet).
+  const useDirectAnthropic = !isFree && !!PRO_API_KEY;
+  
+  const baseUrl = useDirectAnthropic ? PRO_BASE_URL : FREE_BASE_URL;
+  const apiKey = useDirectAnthropic ? PRO_API_KEY : FREE_API_KEY;
+  const model = useDirectAnthropic ? PRO_MODEL : FREE_MODEL;
+  const maxTokens = useDirectAnthropic ? 4096 : FREE_MAX_TOKENS;
+  const temperature = useDirectAnthropic ? 0.7 : FREE_TEMPERATURE;
 
   if (!apiKey) {
     throw new Error(
-      isFree
-        ? 'Free tier API key (VERITAS_LLM_API_KEY) is not configured'
-        : 'Pro tier API key (ANTHROPIC_API_KEY) is not configured'
+      useDirectAnthropic
+        ? 'Pro tier API key (ANTHROPIC_API_KEY) is not configured'
+        : 'Veritas API key (VERITAS_LLM_API_KEY) is not configured'
     );
   }
 

@@ -21,9 +21,9 @@ const FREE_TEMPERATURE = parseFloat(process.env.VERITAS_LLM_TEMPERATURE || '0.2'
 const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
 const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
 
-// Pro tier — Direct Anthropic (Claude Sonnet)
+// Pro tier — Direct Anthropic (Claude 3.5 Sonnet)
 const PRO_API_KEY = process.env.ANTHROPIC_API_KEY || '';
-const PRO_MODEL = 'claude-sonnet-4-20250514';
+const PRO_MODEL = 'claude-3-5-sonnet-latest';
 const PRO_BASE_URL = 'https://api.anthropic.com';
 
 /**

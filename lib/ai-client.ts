@@ -23,7 +23,7 @@ const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
 
 // Pro tier — Direct Anthropic (Claude 3.5 Sonnet)
 const PRO_API_KEY = process.env.ANTHROPIC_API_KEY || '';
-const PRO_MODEL = 'claude-3-5-sonnet-latest';
+const PRO_MODEL = 'claude-sonnet-4-6';
 const PRO_BASE_URL = 'https://api.anthropic.com';
 
 /**

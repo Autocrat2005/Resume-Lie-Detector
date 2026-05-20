@@ -57,7 +57,7 @@ export async function callAI(
       console.error(`Groq API error [${GROQ_MODEL}]:`, response.status, errorText);
       
       if (response.status === 503 || response.status === 429 || response.status === 502 || response.status === 504) {
-        throw new Error('The AI interrogation engine is temporarily overloaded with too many resumes. Please wait 10-15 seconds and try again!');
+        throw new Error('The AI server is temporarily busy processing other resumes. Please wait 15 seconds and try again (this is a temporary server delay and does not count towards your daily analysis limit).');
       }
       
       throw new Error(`Groq API error (${response.status}): ${errorText.substring(0, 200)}`);
@@ -129,7 +129,7 @@ export async function callAI(
     console.error(`AI API error [${provider}/${model}]:`, response.status, errorText);
     
     if (response.status === 503 || response.status === 429 || response.status === 502 || response.status === 504) {
-      throw new Error('The AI interrogation engine is temporarily overloaded with too many resumes. Please wait 10-15 seconds and try again!');
+      throw new Error('The AI server is temporarily busy processing other resumes. Please wait 15 seconds and try again (this is a temporary server delay and does not count towards your daily analysis limit).');
     }
     
     throw new Error(

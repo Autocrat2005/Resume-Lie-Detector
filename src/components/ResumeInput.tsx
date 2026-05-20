@@ -2,16 +2,26 @@
 
 import { useState, useRef } from 'react';
 import { AIProvider } from '../../lib/types';
+import { useApp } from './Providers';
+import Link from 'next/link';
 
 interface ResumeInputProps {
   onAnalyze: (text: string, provider: AIProvider) => void;
   isLoading: boolean;
+  hasExhaustedLimit?: boolean;
+  limitMessage?: string;
 }
 
-export default function ResumeInput({ onAnalyze, isLoading }: ResumeInputProps) {
+export default function ResumeInput({
+  onAnalyze,
+  isLoading,
+  hasExhaustedLimit = false,
+  limitMessage = '',
+}: ResumeInputProps) {
   const [text, setText] = useState('');
   const [provider, setProvider] = useState<AIProvider>('groq');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { user, plan } = useApp();
 
   const handlePaste = async () => {
     try {
@@ -121,6 +131,42 @@ export default function ResumeInput({ onAnalyze, isLoading }: ResumeInputProps) 
               </div>
             </button>
           </div>
+
+          {hasExhaustedLimit && (
+            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center rounded-2xl bg-zinc-950/90 backdrop-blur-md p-6 text-center animate-fadeIn">
+              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-500/10 border border-red-500/20 text-red-500 animate-pulse">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Analysis Limit Reached</h3>
+              <p className="text-sm text-zinc-400 max-w-md mb-6 leading-relaxed">
+                {limitMessage || "You have reached your daily analysis limit. Upgrade or check back tomorrow!"}
+              </p>
+              <div className="flex items-center gap-4">
+                {!user ? (
+                  <Link
+                    href="/auth"
+                    className="rounded-xl bg-gradient-to-r from-red-500 to-red-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-red-500/25 hover:shadow-red-500/40 transition-all hover:scale-105 active:scale-95 duration-200"
+                  >
+                    Sign In to Unlock More
+                  </Link>
+                ) : plan === 'free' ? (
+                  <Link
+                    href="/pricing"
+                    className="rounded-xl bg-gradient-to-r from-red-500 to-red-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-red-500/25 hover:shadow-red-500/40 transition-all hover:scale-105 active:scale-95 duration-200"
+                  >
+                    Upgrade to Pro (2/day)
+                  </Link>
+                ) : (
+                  <span className="text-xs font-semibold text-zinc-500 tracking-wider uppercase bg-white/5 border border-white/10 px-4 py-2 rounded-xl">
+                    Check Back Tomorrow
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

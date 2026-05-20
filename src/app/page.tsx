@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import ResumeInput from '../components/ResumeInput';
 import { AIProvider, AnalysisResult } from '../../lib/types';
@@ -10,8 +10,57 @@ import { useApp } from '../components/Providers';
 export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [hasExhaustedLimit, setHasExhaustedLimit] = useState(false);
+  const [limitMessage, setLimitMessage] = useState('');
   const router = useRouter();
-  const { user, supabase } = useApp();
+  const { user, supabase, plan } = useApp();
+
+  useEffect(() => {
+    async function checkLimits() {
+      if (!user) {
+        // Anonymous users check
+        const localSessions = getLocalSessions();
+        const todayStr = new Date().toDateString();
+        const todayCount = localSessions.filter(
+          (s) => new Date(s.created_at).toDateString() === todayStr
+        ).length;
+
+        if (todayCount >= 1) {
+          setHasExhaustedLimit(true);
+          setLimitMessage('Daily limit reached. Anonymous users are limited to 1 resume analysis per day. Please sign up or log in to continue!');
+        } else {
+          setHasExhaustedLimit(false);
+          setLimitMessage('');
+        }
+      } else if (supabase) {
+        // Logged-in user check
+        try {
+          const maxResumes = plan === 'pro' ? 2 : 1;
+
+          const startOfDay = new Date();
+          startOfDay.setHours(0, 0, 0, 0);
+
+          const { count, error: countError } = await supabase
+            .from('sessions')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .gte('created_at', startOfDay.toISOString());
+
+          if (!countError && count !== null && count >= maxResumes) {
+            setHasExhaustedLimit(true);
+            setLimitMessage(`Daily limit reached. Your ${plan === 'pro' ? 'Pro' : 'Free'} plan is limited to ${maxResumes} resume analysis per day. Please check back tomorrow!`);
+          } else {
+            setHasExhaustedLimit(false);
+            setLimitMessage('');
+          }
+        } catch (err) {
+          console.error('Failed to check limits:', err);
+        }
+      }
+    }
+
+    checkLimits();
+  }, [user, supabase, plan]);
 
   const handleAnalyze = async (text: string, provider: AIProvider) => {
     setIsLoading(true);
@@ -135,7 +184,12 @@ export default function HomePage() {
 
         {/* Resume Input */}
         <div className="w-full max-w-3xl animate-fadeIn" style={{ animationDelay: '0.3s' }}>
-          <ResumeInput onAnalyze={handleAnalyze} isLoading={isLoading} />
+          <ResumeInput
+            onAnalyze={handleAnalyze}
+            isLoading={isLoading}
+            hasExhaustedLimit={hasExhaustedLimit}
+            limitMessage={limitMessage}
+          />
         </div>
 
         {/* Error */}

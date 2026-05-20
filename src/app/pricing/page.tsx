@@ -13,7 +13,7 @@ const tiers: PricingTier[] = [
     description: 'Dissect resumes with GROQ Llama AI',
     aiProvider: 'groq',
     features: [
-      '1 resume analysis per day',
+      '2 resume analyses per day',
       'GROQ API (Llama 3.3)',
       'Basic interview questions',
       'Local session storage',
@@ -126,7 +126,7 @@ export default function PricingPage() {
         ...tier,
         price: currency === 'USD' ? '$4.99' : '₹399',
         features: [
-          '2 resume analyses per day',
+          '50 resume analyses per month',
           'Claude Sonnet AI (Direct)',
           'Deep interview questions',
           'Persistent cloud history',
@@ -163,7 +163,7 @@ export default function PricingPage() {
               </div>
               <ul className="space-y-1.5 text-xs text-zinc-400">
                 <li>&bull; Llama 3.3 Model</li>
-                <li>&bull; 1 resume per day</li>
+                <li>&bull; 2 resumes per day</li>
                 <li>&bull; Results stored locally only</li>
                 <li>&bull; Ideal for quick self-assessments</li>
               </ul>
@@ -174,7 +174,7 @@ export default function PricingPage() {
               </div>
               <ul className="space-y-1.5 text-xs text-zinc-400">
                 <li>&bull; Claude Sonnet AI (direct)</li>
-                <li>&bull; 2 resumes per day</li>
+                <li>&bull; 50 resumes per month</li>
                 <li>&bull; Persistent cloud history</li>
                 <li>&bull; Deep interrogation & analytics</li>
               </ul>

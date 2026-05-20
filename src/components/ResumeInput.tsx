@@ -101,6 +101,10 @@ export default function ResumeInput({
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       
+      if (pdf.numPages > 3) {
+        throw new Error(`Your resume is ${pdf.numPages} pages long. To prevent excessive token usage, we only support resume PDFs of up to 3 pages.`);
+      }
+      
       let fullText = '';
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
@@ -372,7 +376,7 @@ export default function ResumeInput({
                     href="/pricing"
                     className="rounded-xl bg-gradient-to-r from-red-500 to-red-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-red-500/25 hover:shadow-red-500/40 transition-all hover:scale-105 active:scale-95 duration-200"
                   >
-                    Upgrade to Pro (2/day)
+                    Upgrade to Pro (50/month)
                   </Link>
                 ) : (
                   <span className="text-xs font-semibold text-zinc-500 tracking-wider uppercase bg-white/5 border border-white/10 px-4 py-2 rounded-xl">

@@ -46,11 +46,11 @@ export default function PricingCard({ tier, isYearly, onSelect, loading, isActiv
         <p className="mt-1 text-sm text-zinc-400">{tier.description}</p>
       </div>
 
-      <div className="mb-6">
+      <div className="mb-6 flex items-baseline gap-2">
         <span className="text-4xl font-black text-white">{price}</span>
         {price !== 'Free' && price !== 'Custom' && (
-          <span className="text-sm text-zinc-500 ml-1">
-            /{isYearly ? 'year' : 'month'}
+          <span className="rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-xs font-bold text-zinc-400">
+            One-time payment
           </span>
         )}
       </div>

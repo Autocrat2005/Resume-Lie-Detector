@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PricingCard from '../../components/PricingCard';
 import { PricingTier } from '../../../lib/types';
 import { useApp } from '../../components/Providers';
@@ -44,13 +44,24 @@ const tiers: PricingTier[] = [
 ];
 
 export default function PricingPage() {
-  const [isYearly, setIsYearly] = useState(false);
+  const [currency, setCurrency] = useState<'INR' | 'USD'>('INR');
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState<{ plan: 'pro' } | null>(null);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
   const { user, plan } = useApp();
   const router = useRouter();
+
+  useEffect(() => {
+    // Dynamically detect if client is outside India based on timezone
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const isInternational = !tz.includes('Calcutta') && !tz.includes('Asia/Kolkata');
+      setCurrency(isInternational ? 'USD' : 'INR');
+    } catch {
+      setCurrency('INR');
+    }
+  }, []);
 
   const handleSelectPlan = (planName: string) => {
     if (planName === 'Free') {
@@ -72,13 +83,13 @@ export default function PricingPage() {
     setError('');
 
     try {
-      // 1. Create order on backend
+      // 1. Create order on backend with selected currency
       const res = await fetch('/api/payments/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           plan: 'pro',
-          interval: isYearly ? 'yearly' : 'monthly',
+          currency,
           customerName: formData.name,
           customerEmail: formData.email,
           customerPhone: formData.phone,
@@ -109,6 +120,24 @@ export default function PricingPage() {
     }
   };
 
+  const dynamicTiers = tiers.map((tier) => {
+    if (tier.name === 'Pro') {
+      return {
+        ...tier,
+        price: currency === 'USD' ? '$4.99' : '₹399',
+        features: [
+          '2 resume analyses per day',
+          'Claude Sonnet AI (Direct)',
+          'Deep interview questions',
+          'Persistent cloud history',
+          'Score trends & analytics',
+          'Priority processing',
+        ],
+      };
+    }
+    return tier;
+  });
+
   return (
     <main className="min-h-screen pt-24 pb-16 px-4">
       <div className="max-w-5xl mx-auto">
@@ -122,27 +151,6 @@ export default function PricingPage() {
           <p className="mt-3 text-sm text-zinc-500 max-w-md mx-auto">
             Free tier for quick Llama-powered checks. Pro for deep, Sonnet-powered analysis with cloud history.
           </p>
-
-          {/* Yearly toggle */}
-          <div className="mt-6 flex items-center justify-center gap-3">
-            <span className={`text-sm ${!isYearly ? 'text-white' : 'text-zinc-500'}`}>Monthly</span>
-            <button
-              onClick={() => setIsYearly(!isYearly)}
-              className={`relative h-6 w-11 rounded-full transition-colors ${
-                isYearly ? 'bg-red-500' : 'bg-white/10'
-              }`}
-            >
-              <div
-                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-md transition-transform ${
-                  isYearly ? 'translate-x-[22px]' : 'translate-x-0.5'
-                }`}
-              />
-            </button>
-            <span className={`text-sm ${isYearly ? 'text-white' : 'text-zinc-500'}`}>
-              Yearly
-              <span className="ml-1 text-xs text-green-400">Save 30%</span>
-            </span>
-          </div>
         </div>
 
         {/* GROQ vs Claude comparison banner */}
@@ -166,7 +174,7 @@ export default function PricingPage() {
               </div>
               <ul className="space-y-1.5 text-xs text-zinc-400">
                 <li>&bull; Claude Sonnet AI (direct)</li>
-                <li>&bull; 1 resume per day</li>
+                <li>&bull; 2 resumes per day</li>
                 <li>&bull; Persistent cloud history</li>
                 <li>&bull; Deep interrogation & analytics</li>
               </ul>
@@ -183,7 +191,7 @@ export default function PricingPage() {
 
         {/* Pricing Cards */}
         <div className="grid gap-6 sm:grid-cols-2 max-w-3xl mx-auto">
-          {tiers.map((tier) => {
+          {dynamicTiers.map((tier) => {
             const isPlanActive =
               tier.name === 'Free'
                 ? !user || plan === 'free'
@@ -192,7 +200,7 @@ export default function PricingPage() {
               <PricingCard
                 key={tier.name}
                 tier={tier}
-                isYearly={isYearly}
+                isYearly={false}
                 onSelect={() => handleSelectPlan(tier.name)}
                 loading={loading === tier.name.toLowerCase()}
                 isActive={isPlanActive}
@@ -215,10 +223,10 @@ export default function PricingPage() {
               </button>
 
               <h2 className="text-lg font-bold text-white mb-1">
-                Get Pro Plan
+                Get Pro Plan (Lifetime Access)
               </h2>
               <p className="text-xs text-zinc-500 mb-6">
-                {isYearly ? 'Yearly' : 'Monthly'} billing &bull; Powered by Cashfree
+                One-time purchase &bull; Lifetime membership &bull; Powered by Cashfree
               </p>
 
               <form onSubmit={handlePayment} className="space-y-4">
@@ -273,7 +281,7 @@ export default function PricingPage() {
                 >
                   {loading
                     ? 'Processing...'
-                    : `Pay ${isYearly ? '\u20B93,399/year' : '\u20B9399/month'}`
+                    : `Pay ${currency === 'USD' ? '$4.99' : '₹399'} Once`
                   }
                 </button>
 

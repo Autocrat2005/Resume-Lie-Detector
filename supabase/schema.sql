@@ -129,6 +129,10 @@ CREATE POLICY "Users can insert their own payments"
   ON public.payment_history FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
+CREATE POLICY "Users can update their own payments"
+  ON public.payment_history FOR UPDATE
+  USING (auth.uid() = user_id);
+
 -- Service role policies (for API routes)
 CREATE POLICY "Service role full access sessions"
   ON public.sessions FOR ALL

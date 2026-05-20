@@ -5,9 +5,9 @@ import { createServerSupabaseClient } from '../../../../../lib/supabase-server';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { plan, interval = 'monthly', customerName, customerEmail, customerPhone } = body as {
+    const { plan, currency = 'INR', customerName, customerEmail, customerPhone } = body as {
       plan: 'pro';
-      interval?: 'monthly' | 'yearly';
+      currency?: 'INR' | 'USD';
       customerName: string;
       customerEmail: string;
       customerPhone: string;
@@ -27,12 +27,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const amount = getPlanPrice(plan, interval);
+    // Determine flat price based on currency selection (INR 399 vs USD 4.99)
+    const finalCurrency = currency === 'USD' ? 'USD' : 'INR';
+    const amount = finalCurrency === 'USD' ? 4.99 : 399;
     const orderId = `rld_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
     let origin = request.headers.get('origin') || 'http://localhost:3000';
 
     // Cashfree production gateway strictly requires HTTPS return URLs.
-    // We rewrite http:// to https:// to ensure successful order creation.
     if (origin.startsWith('http://')) {
       origin = origin.replace('http://', 'https://');
     }
@@ -40,6 +41,7 @@ export async function POST(request: NextRequest) {
     const orderData = await createCashfreeOrder({
       orderId,
       amount,
+      currency: finalCurrency,
       customerName: customerName || customerEmail.split('@')[0],
       customerEmail,
       customerPhone,
@@ -56,9 +58,9 @@ export async function POST(request: NextRequest) {
           user_id: user.id,
           cashfree_order_id: orderId,
           amount,
-          currency: 'INR',
+          currency: finalCurrency,
           status: 'pending',
-          metadata: { plan, interval },
+          metadata: { plan, interval: 'one-time' },
         });
       }
     }
@@ -68,7 +70,7 @@ export async function POST(request: NextRequest) {
       payment_session_id: orderData.payment_session_id,
       order_amount: amount,
       plan,
-      interval,
+      interval: 'one-time',
     });
   } catch (error) {
     console.error('Create order error:', error);

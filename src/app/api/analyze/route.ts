@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
     // Free users always use GROQ API (Llama 3.3). Pro users always use Claude Sonnet.
     const chosenProvider: AIProvider = plan === 'pro' ? 'claude' : 'groq';
 
-    // 2. Enforce the limit of 1 resume per day for Free and Pro tiers
+    // 2. Enforce daily resume limits (1/day for Free, 2/day for Pro)
     if (user && supabase) {
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
@@ -97,12 +97,14 @@ export async function POST(request: NextRequest) {
         .eq('user_id', user.id)
         .gte('created_at', startOfDay.toISOString());
 
+      const maxResumes = plan === 'pro' ? 2 : 1;
+
       if (countError) {
         console.error('Failed to check daily limits:', countError);
-      } else if (count !== null && count >= 1) {
+      } else if (count !== null && count >= maxResumes) {
         return NextResponse.json(
           {
-            error: `Daily limit reached. The ${plan === 'pro' ? 'Pro' : 'Free'} plan is limited to 1 resume analysis per day. Please check back tomorrow!`,
+            error: `Daily limit reached. The ${plan === 'pro' ? 'Pro' : 'Free'} plan is limited to ${maxResumes} resume analysis per day. Please check back tomorrow!`,
           },
           { status: 429 }
         );

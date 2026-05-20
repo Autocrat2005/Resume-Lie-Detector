@@ -40,10 +40,15 @@ export async function GET(request: NextRequest) {
           .single();
 
         const plan = paymentRecord?.metadata?.plan || 'pro';
-        const interval = paymentRecord?.metadata?.interval || 'monthly';
-        const daysToAdd = interval === 'yearly' ? 365 : 30;
-        const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + daysToAdd);
+        const interval = paymentRecord?.metadata?.interval || 'one-time';
+        
+        let expiresAtIso: string | null = null;
+        if (interval !== 'one-time') {
+          const daysToAdd = interval === 'yearly' ? 365 : 30;
+          const expiresAt = new Date();
+          expiresAt.setDate(expiresAt.getDate() + daysToAdd);
+          expiresAtIso = expiresAt.toISOString();
+        }
 
         // Deactivate existing subscriptions
         await supabase
@@ -61,7 +66,7 @@ export async function GET(request: NextRequest) {
           cashfree_payment_id: orderData.cf_order_id?.toString(),
           amount: orderData.order_amount,
           currency: orderData.order_currency || 'INR',
-          expires_at: expiresAt.toISOString(),
+          expires_at: expiresAtIso,
         });
       }
     } else if (supabase && !isPaid) {

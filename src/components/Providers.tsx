@@ -30,9 +30,43 @@ export default function Providers({ children }: { children: ReactNode }) {
   const [plan, setPlan] = useState<string>('free');
   const [loading, setLoading] = useState(true);
 
+  const syncPendingPayments = async (currentUser: User) => {
+    if (!supabase) return;
+    try {
+      const { data: pendingPayments } = await supabase
+        .from('payment_history')
+        .select('cashfree_order_id')
+        .eq('user_id', currentUser.id)
+        .eq('status', 'pending');
+
+      if (pendingPayments && pendingPayments.length > 0) {
+        for (const payment of pendingPayments) {
+          if (payment.cashfree_order_id) {
+            try {
+              const res = await fetch(`/api/payments/verify?order_id=${payment.cashfree_order_id}`);
+              if (res.ok) {
+                const result = await res.json();
+                if (result.paid) {
+                  console.log(`[Auto-Sync] Order ${payment.cashfree_order_id} verified successfully.`);
+                }
+              }
+            } catch (err) {
+              console.error(`[Auto-Sync] Error verifying ${payment.cashfree_order_id}:`, err);
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error('[Auto-Sync] Error fetching pending payments:', err);
+    }
+  };
+
   const fetchActivePlan = async (currentUser: User) => {
     if (!supabase) return;
     try {
+      // Auto-sync any pending payments first to ensure instant activation on reload
+      await syncPendingPayments(currentUser);
+
       const { data } = await supabase
         .from('subscriptions')
         .select('plan')

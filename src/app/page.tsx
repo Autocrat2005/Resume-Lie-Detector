@@ -25,9 +25,9 @@ export default function HomePage() {
           (s) => new Date(s.created_at).toDateString() === todayStr
         ).length;
 
-        if (todayCount >= 1) {
+        if (todayCount >= 2) {
           setHasExhaustedLimit(true);
-          setLimitMessage('Daily limit reached. Anonymous users are limited to 1 resume analysis per day. Please sign up or log in to continue!');
+          setLimitMessage('Daily limit reached. Anonymous users are limited to 2 resume analyses per day. Please sign up or log in to continue!');
         } else {
           setHasExhaustedLimit(false);
           setLimitMessage('');
@@ -35,23 +35,42 @@ export default function HomePage() {
       } else if (supabase) {
         // Logged-in user check
         try {
-          const maxResumes = plan === 'pro' ? 2 : 1;
+          if (plan === 'pro') {
+            const startOfMonth = new Date();
+            startOfMonth.setDate(1);
+            startOfMonth.setHours(0, 0, 0, 0);
 
-          const startOfDay = new Date();
-          startOfDay.setHours(0, 0, 0, 0);
+            const { count, error: countError } = await supabase
+              .from('sessions')
+              .select('*', { count: 'exact', head: true })
+              .eq('user_id', user.id)
+              .gte('created_at', startOfMonth.toISOString());
 
-          const { count, error: countError } = await supabase
-            .from('sessions')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', user.id)
-            .gte('created_at', startOfDay.toISOString());
-
-          if (!countError && count !== null && count >= maxResumes) {
-            setHasExhaustedLimit(true);
-            setLimitMessage(`Daily limit reached. Your ${plan === 'pro' ? 'Pro' : 'Free'} plan is limited to ${maxResumes} resume analysis per day. Please check back tomorrow!`);
+            if (!countError && count !== null && count >= 50) {
+              setHasExhaustedLimit(true);
+              setLimitMessage('Monthly limit reached. Your Pro plan is limited to 50 resume analyses per month. Please check back next month!');
+            } else {
+              setHasExhaustedLimit(false);
+              setLimitMessage('');
+            }
           } else {
-            setHasExhaustedLimit(false);
-            setLimitMessage('');
+            // Free plan
+            const startOfDay = new Date();
+            startOfDay.setHours(0, 0, 0, 0);
+
+            const { count, error: countError } = await supabase
+              .from('sessions')
+              .select('*', { count: 'exact', head: true })
+              .eq('user_id', user.id)
+              .gte('created_at', startOfDay.toISOString());
+
+            if (!countError && count !== null && count >= 2) {
+              setHasExhaustedLimit(true);
+              setLimitMessage('Daily limit reached. Your Free plan is limited to 2 resume analyses per day. Please check back tomorrow!');
+            } else {
+              setHasExhaustedLimit(false);
+              setLimitMessage('');
+            }
           }
         } catch (err) {
           console.error('Failed to check limits:', err);
@@ -75,9 +94,9 @@ export default function HomePage() {
           (s) => new Date(s.created_at).toDateString() === todayStr
         ).length;
 
-        if (todayCount >= 1) {
+        if (todayCount >= 2) {
           throw new Error(
-            'Daily limit reached. Anonymous users are limited to 1 resume analysis per day. Please sign up or log in to continue!'
+            'Daily limit reached. Anonymous users are limited to 2 resume analyses per day. Please sign up or log in to continue!'
           );
         }
       }

@@ -8,12 +8,16 @@ interface AppContextType {
   supabase: SupabaseClient | null;
   user: User | null;
   loading: boolean;
+  plan: string;
+  refreshPlan: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType>({
   supabase: null,
   user: null,
   loading: true,
+  plan: 'free',
+  refreshPlan: async () => {},
 });
 
 export function useApp() {
@@ -23,7 +27,35 @@ export function useApp() {
 export default function Providers({ children }: { children: ReactNode }) {
   const [supabase] = useState(() => createClient());
   const [user, setUser] = useState<User | null>(null);
+  const [plan, setPlan] = useState<string>('free');
   const [loading, setLoading] = useState(true);
+
+  const fetchActivePlan = async (currentUser: User) => {
+    if (!supabase) return;
+    try {
+      const { data } = await supabase
+        .from('subscriptions')
+        .select('plan')
+        .eq('user_id', currentUser.id)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      setPlan(data?.plan || 'free');
+    } catch (err) {
+      console.error('Error fetching subscription plan:', err);
+      setPlan('free');
+    }
+  };
+
+  const refreshPlan = async () => {
+    if (user) {
+      await fetchActivePlan(user);
+    } else {
+      setPlan('free');
+    }
+  };
 
   useEffect(() => {
     if (!supabase) {
@@ -32,8 +64,15 @@ export default function Providers({ children }: { children: ReactNode }) {
     }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null);
+      async (_event, session) => {
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+        
+        if (currentUser) {
+          await fetchActivePlan(currentUser);
+        } else {
+          setPlan('free');
+        }
         setLoading(false);
       }
     );
@@ -42,7 +81,7 @@ export default function Providers({ children }: { children: ReactNode }) {
   }, [supabase]);
 
   return (
-    <AppContext.Provider value={{ supabase, user, loading }}>
+    <AppContext.Provider value={{ supabase, user, loading, plan, refreshPlan }}>
       {children}
     </AppContext.Provider>
   );

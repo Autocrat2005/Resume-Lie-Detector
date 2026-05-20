@@ -49,7 +49,7 @@ export default function PricingPage() {
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState<{ plan: 'pro' } | null>(null);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
-  const { user } = useApp();
+  const { user, plan } = useApp();
   const router = useRouter();
 
   const handleSelectPlan = (planName: string) => {
@@ -183,15 +183,22 @@ export default function PricingPage() {
 
         {/* Pricing Cards */}
         <div className="grid gap-6 sm:grid-cols-2 max-w-3xl mx-auto">
-          {tiers.map((tier) => (
-            <PricingCard
-              key={tier.name}
-              tier={tier}
-              isYearly={isYearly}
-              onSelect={() => handleSelectPlan(tier.name)}
-              loading={loading === tier.name.toLowerCase()}
-            />
-          ))}
+          {tiers.map((tier) => {
+            const isPlanActive =
+              tier.name === 'Free'
+                ? !user || plan === 'free'
+                : !!user && plan === 'pro';
+            return (
+              <PricingCard
+                key={tier.name}
+                tier={tier}
+                isYearly={isYearly}
+                onSelect={() => handleSelectPlan(tier.name)}
+                loading={loading === tier.name.toLowerCase()}
+                isActive={isPlanActive}
+              />
+            );
+          })}
         </div>
 
         {/* Payment Form Modal */}

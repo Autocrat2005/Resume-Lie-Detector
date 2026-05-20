@@ -7,20 +7,33 @@ interface PricingCardProps {
   isYearly: boolean;
   onSelect?: () => void;
   loading?: boolean;
+  isActive?: boolean;
 }
 
-export default function PricingCard({ tier, isYearly, onSelect, loading }: PricingCardProps) {
+export default function PricingCard({ tier, isYearly, onSelect, loading, isActive }: PricingCardProps) {
   const price = isYearly && tier.yearlyPrice ? tier.yearlyPrice : tier.price;
 
   return (
     <div
       className={`relative rounded-2xl border p-6 transition-all duration-300 hover:scale-[1.02] ${
-        tier.popular
+        isActive
+          ? 'border-green-500/30 bg-gradient-to-b from-green-500/5 to-transparent shadow-xl shadow-green-500/5'
+          : tier.popular
           ? 'border-red-500/30 bg-gradient-to-b from-red-500/10 to-transparent shadow-xl shadow-red-500/5'
           : 'border-white/10 bg-zinc-900/50 hover:border-white/20'
       }`}
     >
-      {tier.popular && (
+      {isActive && (
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+          <span className="rounded-full bg-gradient-to-r from-green-500 to-emerald-600 px-4 py-1 text-xs font-bold text-white shadow-lg shadow-green-500/30 flex items-center gap-1">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            ACTIVE PLAN
+          </span>
+        </div>
+      )}
+      {!isActive && tier.popular && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2">
           <span className="rounded-full bg-gradient-to-r from-red-500 to-red-600 px-4 py-1 text-xs font-bold text-white shadow-lg shadow-red-500/30">
             MOST POPULAR
@@ -43,15 +56,17 @@ export default function PricingCard({ tier, isYearly, onSelect, loading }: Prici
       </div>
 
       <button
-        onClick={onSelect}
-        disabled={loading}
-        className={`w-full rounded-xl py-2.5 text-sm font-semibold transition-all disabled:opacity-50 ${
-          tier.popular
+        onClick={isActive ? undefined : onSelect}
+        disabled={loading || isActive}
+        className={`w-full rounded-xl py-2.5 text-sm font-semibold transition-all disabled:opacity-75 ${
+          isActive
+            ? 'bg-green-500/10 border border-green-500/20 text-green-400 cursor-default'
+            : tier.popular
             ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/20 hover:shadow-red-500/40'
             : 'bg-white/5 text-white hover:bg-white/10'
         }`}
       >
-        {loading ? 'Processing...' : tier.cta}
+        {loading ? 'Processing...' : isActive ? 'Current Plan' : tier.cta}
       </button>
 
       <div className="mt-6 space-y-3">

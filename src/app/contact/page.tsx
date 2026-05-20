@@ -83,8 +83,8 @@ export default function ContactPage() {
                     <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Business Address</div>
                     <div className="text-sm font-bold text-white leading-relaxed">
                       Resume Lie Detector Inc.<br />
-                      HSR Layout, Sector 6,<br />
-                      Bengaluru, Karnataka 560102<br />
+                      Madhavganj, Lashkar,<br />
+                      Gwalior, MP 474001<br />
                       India
                     </div>
                   </div>

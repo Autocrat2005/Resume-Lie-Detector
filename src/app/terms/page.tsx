@@ -111,7 +111,7 @@ export default function TermsPage() {
             <section className="space-y-3">
               <h2 className="text-base font-bold text-white uppercase tracking-wider">7. Governing Law & Dispute Resolution</h2>
               <p>
-                These Terms & Conditions shall be governed by and construed in accordance with the laws of India, without regard to its conflict of law principles. Any dispute arising out of or relating to these terms shall be subject to the exclusive jurisdiction of the courts located in Bengaluru, Karnataka, India.
+                These Terms & Conditions shall be governed by and construed in accordance with the laws of India, without regard to its conflict of law principles. Any dispute arising out of or relating to these terms shall be subject to the exclusive jurisdiction of the courts located in Gwalior, Madhya Pradesh, India.
               </p>
             </section>
 
@@ -122,7 +122,7 @@ export default function TermsPage() {
               </p>
               <p className="text-zinc-300 font-medium">
                 Email: <a href="mailto:yash@causalith.com" className="text-red-400 hover:underline">yash@causalith.com</a><br />
-                Address: Resume Lie Detector Inc., Sector 6, HSR Layout, Bengaluru, KA, 560102, India
+                Address: Resume Lie Detector Inc., Madhavganj, Lashkar, Gwalior, MP, 474001, India
               </p>
             </section>
           </div>

@@ -63,17 +63,31 @@ export default function Providers({ children }: { children: ReactNode }) {
       return;
     }
 
+    // 1. Fetch initial session immediately on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      setLoading(false);
+      if (currentUser) {
+        fetchActivePlan(currentUser);
+      }
+    }).catch((err) => {
+      console.error('Error getting initial session:', err);
+      setLoading(false);
+    });
+
+    // 2. Listen for auth state updates
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         const currentUser = session?.user ?? null;
         setUser(currentUser);
+        setLoading(false);
         
         if (currentUser) {
-          await fetchActivePlan(currentUser);
+          fetchActivePlan(currentUser);
         } else {
           setPlan('free');
         }
-        setLoading(false);
       }
     );
 

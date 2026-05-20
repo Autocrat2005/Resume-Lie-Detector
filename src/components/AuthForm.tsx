@@ -32,7 +32,14 @@ export default function AuthForm() {
         if (error) throw error;
         router.push('/');
       } else {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined;
+        const { error } = await supabase.auth.signUp({ 
+          email, 
+          password,
+          options: {
+            emailRedirectTo: redirectTo,
+          }
+        });
         if (error) throw error;
         setSuccess('Check your email for a confirmation link!');
       }

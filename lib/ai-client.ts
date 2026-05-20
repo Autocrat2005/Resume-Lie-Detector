@@ -114,45 +114,63 @@ export async function callAI(
     body.system = systemMessage.content;
   }
 
-  const response = await fetch(`${baseUrl}/v1/messages`, {
-    method: 'POST',
-    headers: {
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 18000);
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error(`AI API error [${provider}/${model}]:`, response.status, errorText);
+    const response = await fetch(`${baseUrl}/v1/messages`, {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`AI API error [${provider}/${model}]:`, response.status, errorText);
+      throw new Error(`AI API error (${response.status}): ${errorText.substring(0, 200)}`);
+    }
+
+    const data = await response.json();
+
+    // Anthropic messages format: data.content[0].text
+    const text =
+      data.content?.[0]?.text ||
+      data.choices?.[0]?.message?.content || // OpenAI compat fallback
+      '';
+
+    if (!text) {
+      throw new Error('Empty response from AI');
+    }
+
+    return {
+      content: text,
+      provider: isFree ? 'groq' : 'claude',
+    };
+  } catch (err: unknown) {
+    if (provider === 'groq') {
+      throw err;
+    }
+
+    console.warn('[AI client] Claude Sonnet request failed or timed out after 18s. Falling back to Groq Llama 3.3...', err);
     
-    if (response.status === 503 || response.status === 429 || response.status === 502 || response.status === 504) {
-      throw new Error('The AI server is temporarily busy processing other resumes. Please wait 15 seconds and try again (this is a temporary server delay and does not count towards your daily analysis limit).');
+    if (GROQ_API_KEY) {
+      try {
+        return await callAI(messages, 'groq');
+      } catch (fallbackErr) {
+        console.error('[AI client] Groq fallback failed as well:', fallbackErr);
+        throw fallbackErr;
+      }
     }
     
-    throw new Error(
-      `AI API error (${response.status}): ${errorText.substring(0, 200)}`
-    );
+    throw err;
   }
-
-  const data = await response.json();
-
-  // Anthropic messages format: data.content[0].text
-  const text =
-    data.content?.[0]?.text ||
-    data.choices?.[0]?.message?.content || // OpenAI compat fallback
-    '';
-
-  if (!text) {
-    throw new Error('Empty response from AI');
-  }
-
-  return {
-    content: text,
-    provider: isFree ? 'groq' : 'claude',
-  };
 }
 
 export function getAvailableProviders(): AIProvider[] {

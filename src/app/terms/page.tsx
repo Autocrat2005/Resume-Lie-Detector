@@ -121,7 +121,7 @@ export default function TermsPage() {
                 If you have any questions or clarifications regarding these Terms, please reach out to us at:
               </p>
               <p className="text-zinc-300 font-medium">
-                Email: <a href="mailto:support@resumeliedetector.com" className="text-red-400 hover:underline">support@resumeliedetector.com</a><br />
+                Email: <a href="mailto:yash@causalith.com" className="text-red-400 hover:underline">yash@causalith.com</a><br />
                 Address: Resume Lie Detector Inc., Sector 6, HSR Layout, Bengaluru, KA, 560102, India
               </p>
             </section>

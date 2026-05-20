@@ -48,7 +48,7 @@ export default function RefundsPage() {
                   <strong className="text-white">Self-Service Cancellation:</strong> You can cancel your Pro plan at any time through your Profile or Account settings page.
                 </li>
                 <li>
-                  <strong className="text-white">Email Cancellation:</strong> Alternatively, you may request a cancellation by emailing our support team at <a href="mailto:support@resumeliedetector.com" className="text-red-400 hover:underline">support@resumeliedetector.com</a>. Please send the request from the email address registered with your account.
+                  <strong className="text-white">Email Cancellation:</strong> Alternatively, you may request a cancellation by emailing our support team at <a href="mailto:yash@causalith.com" className="text-red-400 hover:underline">yash@causalith.com</a>. Please send the request from the email address registered with your account.
                 </li>
               </ul>
               <p className="text-xs text-zinc-400">
@@ -92,7 +92,7 @@ export default function RefundsPage() {
               </p>
               <div className="rounded-xl border border-white/5 bg-zinc-900/50 p-4 space-y-2 text-xs">
                 <p>
-                  <strong className="text-zinc-400">Email Address:</strong> <a href="mailto:support@resumeliedetector.com" className="text-red-400 hover:underline">support@resumeliedetector.com</a>
+                  <strong className="text-zinc-400">Email Address:</strong> <a href="mailto:yash@causalith.com" className="text-red-400 hover:underline">yash@causalith.com</a>
                 </p>
                 <p>
                   <strong className="text-zinc-400">Required Details:</strong> Please include your full name, registered account email, date of transaction, amount paid, and transaction reference ID (obtained from your email receipt).

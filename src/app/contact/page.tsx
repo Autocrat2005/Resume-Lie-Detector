@@ -64,8 +64,8 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Email Support</div>
-                    <a href="mailto:support@resumeliedetector.com" className="text-sm font-bold text-white hover:text-red-400 transition-colors">
-                      support@resumeliedetector.com
+                    <a href="mailto:yash@causalith.com" className="text-sm font-bold text-white hover:text-red-400 transition-colors">
+                      yash@causalith.com
                     </a>
                     <div className="text-[11px] text-zinc-500 mt-0.5">Average response time: 24 hours</div>
                   </div>
@@ -87,20 +87,6 @@ export default function ContactPage() {
                       Bengaluru, Karnataka 560102<br />
                       India
                     </div>
-                  </div>
-                </div>
-
-                {/* Phone */}
-                <div className="flex gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-500/10 text-red-400 border border-red-500/20">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Helpline</div>
-                    <div className="text-sm font-bold text-white">+91 80 4912 3456</div>
-                    <div className="text-[11px] text-zinc-500 mt-0.5">Mon - Fri: 10:00 AM - 6:00 PM IST</div>
                   </div>
                 </div>
               </div>

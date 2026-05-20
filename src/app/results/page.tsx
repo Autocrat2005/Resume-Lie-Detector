@@ -7,6 +7,7 @@ import { getLocalSession, updateLocalSessionAnswers } from '../../../lib/store';
 import ResultsSummary from '../../components/ResultsSummary';
 import InterviewSession, { AnswerResult } from '../../components/InterviewSession';
 import Link from 'next/link';
+import { useApp } from '../../components/Providers';
 
 type Phase = 'summary' | 'interview' | 'complete';
 
@@ -18,24 +19,55 @@ function ResultsContent() {
   const [phase, setPhase] = useState<Phase>('summary');
   const [interviewResults, setInterviewResults] = useState<AnswerResult[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user, supabase } = useApp();
 
   useEffect(() => {
-    if (!sessionId) return;
-
-    const session = getLocalSession(sessionId);
-    if (session) {
-      setResults(session.results);
-      setProvider(session.ai_provider);
+    if (!sessionId) {
+      setLoading(false);
+      return;
     }
-    setLoading(false);
-  }, [sessionId]);
 
-  const handleInterviewComplete = (answers: AnswerResult[]) => {
+    const currentSessionId = sessionId;
+
+    async function loadSession() {
+      // 1. Try local storage first for quick response
+      const session = getLocalSession(currentSessionId);
+      if (session) {
+        setResults(session.results);
+        setProvider(session.ai_provider);
+        setLoading(false);
+        return;
+      }
+
+      // 2. Try Supabase cloud database if not found locally or if logged in
+      if (user && supabase) {
+        try {
+          const { data, error } = await supabase
+            .from('sessions')
+            .select('*')
+            .eq('id', currentSessionId)
+            .maybeSingle();
+
+          if (data && !error) {
+            setResults(data.results_json as AnalysisResult);
+            setProvider(data.ai_provider as AIProvider);
+          }
+        } catch (err) {
+          console.error('Failed to load session from Supabase:', err);
+        }
+      }
+      setLoading(false);
+    }
+
+    loadSession();
+  }, [sessionId, user, supabase]);
+
+  const handleInterviewComplete = async (answers: AnswerResult[]) => {
     setInterviewResults(answers);
     setPhase('complete');
 
-    // Save answers locally
     if (sessionId) {
+      // Save answers locally
       answers.forEach((a) => {
         updateLocalSessionAnswers(sessionId, {
           question: a.question.question,
@@ -45,6 +77,24 @@ function ResultsContent() {
           feedback: a.feedback,
         });
       });
+
+      // Save answers to Supabase if authenticated
+      if (user && supabase) {
+        try {
+          const insertData = answers.map((a) => ({
+            session_id: sessionId,
+            question: a.question.question,
+            skill: a.question.skill,
+            answer: a.answer,
+            passed: a.passed,
+            feedback: a.feedback,
+          }));
+
+          await supabase.from('answers').insert(insertData);
+        } catch (err) {
+          console.error('Failed to persist answers in Supabase:', err);
+        }
+      }
     }
   };
 

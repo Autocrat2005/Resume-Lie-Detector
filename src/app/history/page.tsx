@@ -8,11 +8,13 @@ import HistoryList from '../../components/HistoryList';
 import ScoreTrendChart from '../../components/ScoreTrendChart';
 import Link from 'next/link';
 
+import { useRouter } from 'next/navigation';
+
 export default function HistoryPage() {
   const { user, supabase, loading } = useApp();
   const [sessions, setSessions] = useState<SessionData[]>([]);
   const [fetching, setFetching] = useState(true);
-  const [selectedSession, setSelectedSession] = useState<SessionData | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchSessions() {
@@ -91,54 +93,8 @@ export default function HistoryPage() {
 
         <HistoryList
           sessions={sessions}
-          onSelect={(session) => setSelectedSession(session)}
+          onSelect={(session) => router.push(`/results?id=${session.id}`)}
         />
-
-        {/* Selected session modal */}
-        {selectedSession && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-            <div className="relative w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-2xl border border-white/10 bg-zinc-900 p-6">
-              <button
-                onClick={() => setSelectedSession(null)}
-                className="absolute top-4 right-4 rounded-lg p-1 text-zinc-500 hover:bg-white/5 hover:text-white"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-              </button>
-
-              <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className={`flex h-14 w-14 items-center justify-center rounded-xl ${
-                    selectedSession.score <= 30 ? 'bg-red-500/10 text-red-400'
-                    : selectedSession.score <= 60 ? 'bg-amber-500/10 text-amber-400'
-                    : 'bg-green-500/10 text-green-400'
-                  }`}>
-                    <span className="text-2xl font-black tabular-nums">{selectedSession.score}</span>
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-bold text-white">Analysis Details</h2>
-                    <p className="text-xs text-zinc-500">
-                      {new Date(selectedSession.created_at).toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="rounded-xl bg-white/5 p-4">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2">Verdict</h3>
-                  <p className="text-sm text-zinc-300 italic">&ldquo;{selectedSession.verdict}&rdquo;</p>
-                </div>
-
-                <div className="rounded-xl bg-white/5 p-4">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2">Resume</h3>
-                  <p className="text-xs text-zinc-400 whitespace-pre-wrap max-h-48 overflow-y-auto">
-                    {selectedSession.resume_text}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </main>
   );

@@ -68,17 +68,24 @@ export async function POST(request: NextRequest) {
       user = authUser;
 
       if (user) {
-        const { data: subscription } = await supabase
-          .from('subscriptions')
-          .select('plan')
-          .eq('user_id', user.id)
-          .eq('status', 'active')
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
+        // Check if user is in the Pro whitelist
+        const proEmailsStr = process.env.NEXT_PUBLIC_PRO_EMAILS || '';
+        const proEmails = proEmailsStr.split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+        if (user.email && proEmails.includes(user.email.toLowerCase())) {
+          plan = 'pro';
+        } else {
+          const { data: subscription } = await supabase
+            .from('subscriptions')
+            .select('plan')
+            .eq('user_id', user.id)
+            .eq('status', 'active')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
 
-        if (subscription) {
-          plan = subscription.plan;
+          if (subscription) {
+            plan = subscription.plan;
+          }
         }
       }
     }

@@ -64,6 +64,14 @@ export default function Providers({ children }: { children: ReactNode }) {
   const fetchActivePlan = async (currentUser: User) => {
     if (!supabase) return;
     try {
+      // Check if user is in the Pro whitelist
+      const proEmailsStr = process.env.NEXT_PUBLIC_PRO_EMAILS || '';
+      const proEmails = proEmailsStr.split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+      if (currentUser.email && proEmails.includes(currentUser.email.toLowerCase())) {
+        setPlan('pro');
+        return;
+      }
+
       // Auto-sync any pending payments first to ensure instant activation on reload
       await syncPendingPayments(currentUser);
 

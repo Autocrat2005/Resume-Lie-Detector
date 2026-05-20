@@ -33,7 +33,7 @@ export default function AuthForm() {
         router.push('/');
       } else {
         const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined;
-        const { error } = await supabase.auth.signUp({ 
+        const { data, error } = await supabase.auth.signUp({ 
           email, 
           password,
           options: {
@@ -41,7 +41,15 @@ export default function AuthForm() {
           }
         });
         if (error) throw error;
-        setSuccess('Check your email for a confirmation link!');
+        
+        if (data?.session) {
+          setSuccess('Account created successfully! Logging you in...');
+          setTimeout(() => {
+            router.push('/');
+          }, 1500);
+        } else {
+          setSuccess('Check your email for a confirmation link!');
+        }
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred');

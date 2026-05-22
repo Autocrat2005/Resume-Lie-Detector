@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { AIProvider } from '../../lib/types';
 import { useApp } from './Providers';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 interface ResumeInputProps {
@@ -70,6 +71,14 @@ export default function ResumeInput({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user, plan } = useApp();
+  const router = useRouter();
+
+  // Securely reset and restrict provider to Groq if user is not Pro
+  useEffect(() => {
+    if (plan !== 'pro') {
+      setProvider('groq');
+    }
+  }, [plan]);
 
   const handlePaste = async () => {
     try {
@@ -311,14 +320,25 @@ export default function ResumeInput({
                   Free (GROQ Llama)
                 </button>
                 <button
-                  onClick={() => setProvider('claude')}
-                  className={`rounded-md px-3 py-1 text-xs font-semibold transition-all ${
-                    provider === 'claude'
+                  onClick={() => {
+                    if (plan === 'pro') {
+                      setProvider('claude');
+                    } else {
+                      router.push('/pricing');
+                    }
+                  }}
+                  className={`relative flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-semibold transition-all ${
+                    provider === 'claude' && plan === 'pro'
                       ? 'bg-red-500/20 text-red-400 shadow-sm'
                       : 'text-zinc-500 hover:text-zinc-300'
                   }`}
                 >
-                  Pro (Claude Sonnet)
+                  <span>Pro (Claude Sonnet)</span>
+                  {plan !== 'pro' && (
+                    <span className="flex items-center text-[9px] font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 shadow-sm">
+                      🔒 Unlock
+                    </span>
+                  )}
                 </button>
               </div>
             </div>
